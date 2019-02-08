@@ -92,6 +92,16 @@ public interface List<E> {
     boolean isEmpty();
 
     /**
+     * Retrieves the index of a specified value. Will return -1 if the given
+     * element is null or if the list is empty or if the given element is not
+     * found in the list.
+     * @param element The value whose index is to be retrieved.
+     * @return Index of the given element, or -1 if the element is null or
+     * the list is empty or the given element is not found.
+     */
+    int indexOf(E element);
+
+    /**
      * Prints the contents of the list in a single line separating each element
      * by a space to the default System.out
      */

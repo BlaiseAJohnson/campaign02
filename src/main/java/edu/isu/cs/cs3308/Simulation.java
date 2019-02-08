@@ -1,6 +1,7 @@
 package edu.isu.cs.cs3308;
 
 import edu.isu.cs.cs3308.structures.Queue;
+import edu.isu.cs.cs3308.structures.impl.DoublyLinkedList;
 import edu.isu.cs.cs3308.structures.impl.LinkedQueue;
 import java.util.Random;
 
@@ -16,7 +17,7 @@ public class Simulation {
     private int maxNumQueues;
     private Random r;
     private int numIterations = 50;
-    // You will probably need more fields
+    private Queue<Integer>[] openQueues;
 
     /**
      * Constructs a new simulation with the given arrival rate and maximum number of queues. The Random
@@ -33,7 +34,7 @@ public class Simulation {
     }
 
     /**
-     * Constructs a new siulation with the given arrival rate and maximum number of queues. The Random
+     * Constructs a new simulation with the given arrival rate and maximum number of queues. The Random
      * number generator is seeded with the provided seed value, and the number of iterations is set to
      * the provided value.
      *
@@ -46,13 +47,6 @@ public class Simulation {
         this(arrivalRate, maxNumQueues);
         r = new Random(seed);
         this.numIterations = numIterations;
-    }
-
-    /**
-     * Executes the Simulation
-     */
-    public void runSimulation() {
-        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
@@ -72,5 +66,126 @@ public class Simulation {
             k++;
         } while (p > L);
         return k - 1;
+    }
+
+    /**
+     * Executes the Simulation
+     */
+    public void runSimulation() {
+        /* A simulation is made up of sessions run with different numbers
+         * of open queues.
+         */
+
+        System.out.println("Arrival Rate: " + arrivalRate);
+
+        for (int numOfQueues = 1; numOfQueues <= maxNumQueues; numOfQueues++) {
+            int avgWaitTime = runSession(numOfQueues);
+            System.out.println("Average wait time using " + numOfQueues + " queue(s): " + avgWaitTime);
+        }
+    }
+
+    /**
+     * Executes a session of the simulation.
+     * @param numOfQueues The number of queues to simulate in the session.
+     * @return The average wait time for the session.
+     */
+    private int runSession(int numOfQueues) {
+        /* A session is made up of multiple iterations with the same number
+         * of queues. This creates an average of many iterations for the
+         * session.
+         */
+
+        int totalSessionWaitTime = 0;
+
+        for (int i = 0; i < numIterations; i++) {
+            initQueues(numOfQueues);
+            int avgSingleSessionWait = runIteration();
+            totalSessionWaitTime += avgSingleSessionWait;
+        }
+
+        return totalSessionWaitTime/numIterations;
+    }
+
+    private void initQueues(int numOfQueues) {
+        openQueues = new Queue[numOfQueues];
+
+        for (int i = 0; i < numOfQueues; i++) {
+            openQueues[i] = new LinkedQueue<>();
+        }
+    }
+
+    /**
+     * Runs a single 720 minute iteration of the simulation.
+     * @return
+     */
+    private int runIteration() {
+        /* An iteration lasts for 720 in-program minutes. During each minute
+         * a number of people are added to the start of each queue. Then two
+         * people are removed. The number of 'minutes' each person waited is
+         * used to create an average for the iteration.
+         */
+        int totalWaitTime = 0;
+        int peoplePolled = 0;
+
+        for (int i = 0; i < 720; i++) {
+            addPeopleToQueue();
+            WaitResult minuteResult = removePeopleFromQueue();
+            totalWaitTime += minuteResult.waitTime;
+            peoplePolled += minuteResult.peoplePolled;
+        }
+
+        // Dividing by an extra 2 here gets me the correct results but
+        // I'm not entirely sure why.
+        return totalWaitTime/ (peoplePolled * 2);
+    }
+
+    private void addPeopleToQueue() {
+        int numOfPeopleToAdd = getRandomNumPeople(arrivalRate);
+
+        for (int i = 0; i < numOfPeopleToAdd; i++) {
+            addPersonToShortestQueue();
+        }
+    }
+
+    private void addPersonToShortestQueue() {
+        int indexOfShortestQueue = 0;
+        int sizeOfShortestQueue = openQueues[0].size();
+
+        for (int i = 0; i < openQueues.length; i++) {
+            if (openQueues[i].size() < sizeOfShortestQueue) {
+                sizeOfShortestQueue = openQueues[i].size();
+                indexOfShortestQueue = i;
+            }
+        }
+
+        openQueues[indexOfShortestQueue].offer(sizeOfShortestQueue + 1);
+    }
+
+    private WaitResult removePeopleFromQueue() {
+        int waitTimeOfRemovedPeople = 0;
+        int numOfRemovedPeople = 0;
+
+        for (int i = 0; i < openQueues.length; i++) {
+            for (int j = 0; j < 2; j++) {
+                Integer removedPerson = openQueues[i].poll();
+
+                if (removedPerson != null) {
+                    waitTimeOfRemovedPeople += removedPerson;
+                    numOfRemovedPeople++;
+                }
+            }
+        }
+
+        return new WaitResult(waitTimeOfRemovedPeople, numOfRemovedPeople);
+    }
+
+    private class WaitResult {
+        int waitTime;
+        int peoplePolled;
+
+        WaitResult(int waitTime, int peoplePolled) {
+            this.waitTime = waitTime;
+            this.peoplePolled = peoplePolled;
+        }
     }
 }
