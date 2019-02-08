@@ -9,7 +9,7 @@ import java.util.Random;
  * Class representing a wait time simulation program.
  *
  * @author Isaac Griffith
- * @author
+ * @author Blaise Johnson
  */
 public class Simulation {
 
@@ -78,10 +78,16 @@ public class Simulation {
 
         System.out.println("Arrival Rate: " + arrivalRate);
 
+        long startTime = System.nanoTime();
         for (int numOfQueues = 1; numOfQueues <= maxNumQueues; numOfQueues++) {
             int avgWaitTime = runSession(numOfQueues);
             System.out.println("Average wait time using " + numOfQueues + " queue(s): " + avgWaitTime);
         }
+        long endTime = System.nanoTime();
+
+        long timeElapsed = endTime - startTime;
+
+        System.out.println("This simulation completed in " + timeElapsed + " nanoseconds.");
     }
 
     /**
