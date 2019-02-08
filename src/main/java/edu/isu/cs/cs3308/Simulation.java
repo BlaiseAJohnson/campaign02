@@ -78,16 +78,16 @@ public class Simulation {
 
         System.out.println("Arrival Rate: " + arrivalRate);
 
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         for (int numOfQueues = 1; numOfQueues <= maxNumQueues; numOfQueues++) {
             int avgWaitTime = runSession(numOfQueues);
             System.out.println("Average wait time using " + numOfQueues + " queue(s): " + avgWaitTime);
         }
-        long endTime = System.nanoTime();
+        long endTime = System.currentTimeMillis();
 
         long timeElapsed = endTime - startTime;
 
-        System.out.println("This simulation completed in " + timeElapsed + " nanoseconds.");
+        System.out.println("This simulation completed in " + timeElapsed + " milliseconds.");
     }
 
     /**
